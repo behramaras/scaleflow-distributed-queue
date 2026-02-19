@@ -14,13 +14,16 @@ def process_tasks():
         task = r.brpop("task_queue", timeout=0)
         
         if task:
+            task_data = task[1]
             # task[1] contains the actual data
-            print(f"📦 New task received: {task[1]}")
+            print(f"📦 New task received: {task_data}")
             
             # 3. Simulate processing the task
             print("⚙️ Processing...")
             time.sleep(2) # Simulate 2 seconds of work
             
+            # 4. When the job is done, add it to the 'completed_tasks' list
+            r.lpush("completed_tasks", f"Finished: {task_data} at {time.strftime('%H:%M:%S')}")
             print("✅ Task completed successfully!")
             print("-" * 30)
 
