@@ -1,10 +1,43 @@
-import redis
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+import redis
+import time
+import json
 
 app = FastAPI(title="ScaleFlow API")
 
+# Connect to Redis
 r = redis.Redis(host='localhost', port=6379, decode_responses=True)
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    # Get the client's IP address
+    client_ip = request.client.host
+    # Create a unique key for the current minute (Fixed Window)
+    current_minute = time.strftime("%H:%M")
+    key = f"rate_limit:{client_ip}:{current_minute}"
+    
+    # Increment the request count in Redis
+    request_count = r.incr(key)
+    
+    # If it's a new key, set an expiration to clean up memory
+    if request_count == 1:
+        r.expire(key, 59)
+        
+    # LIMIT: 5 requests per minute
+    if request_count > 5:
+        return JSONResponse(
+            status_code=429,
+            content={
+                "error": "Too many requests",
+                "message": "Rate limit exceeded. Please try again later."
+            }
+        )
+    
+    # Proceed to the actual endpoint
+    response = await call_next(request)
+    return response
 
 class TaskRequest(BaseModel):
     task_name: str
@@ -14,10 +47,11 @@ class TaskRequest(BaseModel):
 async def submit_task(request: TaskRequest):
     task_data = {
         "name": request.task_name,
-        "data": str(request.payload)
+        "data": str(request.payload),
+        "created_at": time.time()
     }
 
-    r.lpush("task_queue", str(task_data))
+    r.lpush("task_queue", json.dumps(task_data))
 
     return {"message": "Task successfully enqueued!", "task": request.task_name}
 
