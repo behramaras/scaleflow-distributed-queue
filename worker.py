@@ -41,12 +41,12 @@ def process_tasks():
                         if retries < 3:
                             # Increment retry count
                             task_dict["retries"] = retries + 1
-                            print(f"🔄 Retrying task... ({task_dict['retries']}/3)")
+                            print(f"Retrying task... ({task_dict['retries']}/3)")
                             
                             # Push it back to the START of the queue
                             r.lpush("task_queue", json.dumps(task_dict))
                         else:
-                            print(f"⚠️ Task {task_name} failed after maximum retries.")
+                            print(f"Task {task_name} failed after maximum retries.")
                                 
                     # Log completion
                     r.lpush("completed_tasks", f"Success: {task_name} at {time.strftime('%H:%M:%S')}")
