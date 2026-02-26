@@ -46,7 +46,9 @@ def process_tasks():
                             # Push it back to the START of the queue
                             r.lpush("task_queue", json.dumps(task_dict))
                         else:
-                            print(f"Task {task_name} failed after maximum retries.")
+                            # After 3 failed attempts, move to Dead Letter Queue (DLQ)
+                            print(f"Moving to DLQ: {task_name}")
+                            r.lpush("dead_letter_queue", json.dumps(task_dict))
                                 
                     # Log completion
                     r.lpush("completed_tasks", f"Success: {task_name} at {time.strftime('%H:%M:%S')}")
