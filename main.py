@@ -4,11 +4,13 @@ from pydantic import BaseModel
 import redis
 import time
 import json
+import os
 
 app = FastAPI(title="ScaleFlow API")
 
 # Connect to Redis
-r = redis.Redis(host='localhost', port=6379, decode_responses=True)
+redis_host = os.getenv("REDIS_HOST", "localhost")
+r = redis.Redis(host=redis_host, port=6379, decode_responses=True)
 
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
