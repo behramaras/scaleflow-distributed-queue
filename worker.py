@@ -1,9 +1,12 @@
 import redis
 import time
 import json
+import os
 
-# 1. Connect to Redis (Same bridge as the API)
-r = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+
+# Connect to Redis
+redis_host = os.getenv("REDIS_HOST", "localhost")
+r = redis.Redis(host=redis_host, port=6379, decode_responses=True)
 
 def process_tasks():
     print("Worker is running, waiting for tasks...")
