@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  # 1. Redis Service
+  redis-server:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+
+  # 2. FastAPI API Service
+  api:
+    build: .
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis-server
+    environment:
+      - REDIS_HOST=redis-server
+
+  # 3. Worker Service
+  worker:
+    build: .
+    command: python worker.py
+    depends_on:
+      - redis-server
+    environment:
+      - REDIS_HOST=redis-server
