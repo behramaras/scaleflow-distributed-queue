@@ -24,8 +24,7 @@ Ensure you have [Docker](https://www.docker.com/) installed.
 
 1. **Clone the repository:**
    ```bash
-   git clone <your-repo-url>
-   cd ScaleFlow
+   git clone https://github.com/behramaras/scaleflow-distributed-queue
    ```
 
 
